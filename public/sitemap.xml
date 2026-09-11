@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- Primary High-Priority Landing Pages -->
+  <url>
+    <loc>https://omnidiscover.com/</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/products</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/categories</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/deals</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/brands</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/compare</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Categories Index -->
+  <url>
+    <loc>https://omnidiscover.com/products?category=cat-electronics</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/products?category=cat-audio</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/products?category=cat-laptops</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/products?category=cat-cameras</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/products?category=cat-kitchen</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/products?category=cat-coffee</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Featured Products with Image Metadata -->
+  <url>
+    <loc>https://omnidiscover.com/product/prod-sony-wh1000xm5</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&amp;fit=crop&amp;w=1000&amp;q=80</image:loc>
+      <image:title>Sony WH-1000XM5 Wireless Noise Cancelling Headphones</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/product/prod-bose-qc-ultra</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&amp;fit=crop&amp;w=1000&amp;q=80</image:loc>
+      <image:title>Bose QuietComfort Ultra Wireless Headphones</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/product/prod-apple-mbp-16-m3</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&amp;fit=crop&amp;w=1000&amp;q=80</image:loc>
+      <image:title>Apple MacBook Pro 16-inch M3 Max</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/product/prod-dell-xps-16-9640</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&amp;fit=crop&amp;w=1000&amp;q=80</image:loc>
+      <image:title>Dell XPS 16 (9640) OLED Laptop</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/product/prod-breville-barista-touch</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&amp;fit=crop&amp;w=1000&amp;q=80</image:loc>
+      <image:title>Breville the Barista Touch Espresso Machine</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/product/prod-sony-a7iv</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&amp;fit=crop&amp;w=1000&amp;q=80</image:loc>
+      <image:title>Sony Alpha 7 IV Full-Frame Mirrorless Camera</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/product/prod-sennheiser-momentum-4</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&amp;fit=crop&amp;w=1000&amp;q=80</image:loc>
+      <image:title>Sennheiser Momentum 4 Wireless ANC Headphones</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://omnidiscover.com/product/prod-apple-airpods-max</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&amp;fit=crop&amp;w=1000&amp;q=80</image:loc>
+      <image:title>Apple AirPods Max Wireless ANC Over-Ear Headphones</image:title>
+    </image:image>
+  </url>
+
+</urlset>
