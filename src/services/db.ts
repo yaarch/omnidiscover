@@ -1964,6 +1964,25 @@ class DatabaseService {
         }
       });
       this.products = (mergedProducts.length > 0 ? mergedProducts : INITIAL_PRODUCTS).map(p => cleanAndSanitizeProduct(p));
+
+      // MIGRATION: Fix WOLFBOX MF50 Electric Duster images if it was imported without backend
+      this.products = this.products.map(p => {
+        if (p.identifiers?.asin === 'B0DSW7R4VN' || /WOLFBOX MF50/i.test(p.name)) {
+          if (p.images.length <= 1 || p.images[0].url.includes('unsplash.com') || p.images[0].url.includes('default')) {
+            p.name = 'WOLFBOX MF50 Electric Duster 110000RPM Adjustable';
+            p.brandName = 'WOLFBOX';
+            p.images = [
+              { id: 'img-wb-1', url: 'https://m.media-amazon.com/images/I/41uiaeC4acL._AC_SL1500_.jpg', alt: 'WOLFBOX MF50 Front', isPrimary: true, sortOrder: 1 },
+              { id: 'img-wb-2', url: 'https://m.media-amazon.com/images/I/412VW3sXkEL._AC_SL1500_.jpg', alt: 'WOLFBOX MF50 Side', isPrimary: false, sortOrder: 2 },
+              { id: 'img-wb-3', url: 'https://m.media-amazon.com/images/I/41vym8T0O0L._AC_SL1500_.jpg', alt: 'WOLFBOX MF50 Top', isPrimary: false, sortOrder: 3 },
+              { id: 'img-wb-4', url: 'https://m.media-amazon.com/images/I/51B9b-UVWwL._AC_SL1500_.jpg', alt: 'WOLFBOX MF50 Usage', isPrimary: false, sortOrder: 4 },
+              { id: 'img-wb-5', url: 'https://m.media-amazon.com/images/I/51OqeOTpJwL._AC_SL1500_.jpg', alt: 'WOLFBOX MF50 Detail', isPrimary: false, sortOrder: 5 }
+            ];
+          }
+        }
+        return p;
+      });
+
       this.save('products', this.products);
 
       const savedCategories = localStorage.getItem('omni_db_categories');

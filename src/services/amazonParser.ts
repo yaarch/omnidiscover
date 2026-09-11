@@ -218,6 +218,7 @@ export function detectBrand(text: string): { brandName: string; brandId: string 
     asus: 'ASUS',
     hp: 'HP',
     breville: 'Breville',
+    wolfbox: 'WOLFBOX',
     delonghi: 'De\'Longhi',
     canon: 'Canon',
     nikon: 'Nikon',
