@@ -25,7 +25,7 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({ onSuccess, onCan
   const config = adminAuth.getConfig();
 
   const [authMode, setAuthMode] = useState<'password' | 'pin'>('password');
-  const [email, setEmail] = useState(config.adminEmail);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [pin, setPin] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
