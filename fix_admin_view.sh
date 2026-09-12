@@ -1,0 +1,2 @@
+sed -i 's/if (!isAuthenticated) {/if (isAuthenticated === null) { return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"><\/div><\/div>; } if (!isAuthenticated) {/' src/components/views/AdminView.tsx
+sed -i 's/adminAuth.logout();/fetch("\/api\/admin\/logout", { method: "POST" });/' src/components/views/AdminView.tsx

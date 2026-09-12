@@ -57,18 +57,25 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
   const { formatPrice, t } = useI18n();
 
   // Authentication State
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => adminAuth.isAuthenticated());
-  const [adminConfig, setAdminConfig] = useState<AdminSecurityConfig>(() => adminAuth.getConfig());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string>('');
 
   // Subscribe to auth changes
   useEffect(() => {
-    const unsubscribe = adminAuth.subscribe(() => {
-      setIsAuthenticated(adminAuth.isAuthenticated());
-      setAdminConfig(adminAuth.getConfig());
-    });
-    return unsubscribe;
+    fetch('/api/admin/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+          setAdminEmail(data.email);
+        } else {
+          setIsAuthenticated(false);
+        }
+      })
+      .catch(() => setIsAuthenticated(false));
   }, []);
 
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'analytics' | 'products' | 'create' | 'import' | 'inquiries' | 'settings' | 'security'>('analytics');
   const [inquiries, setInquiries] = useState<ContactInquiry[]>([]);
   const [inquirySearch, setInquirySearch] = useState('');
@@ -80,16 +87,31 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     reloadInquiries();
+    if (activeTab === "security") {
+      fetch("/api/admin/audit")
+        .then(res => res.json())
+        .then(data => setAuditLogs(data || []));
+    }
   }, [activeTab]);
 
   const handleMarkInquiryStatus = (id: string, status: ContactInquiry['status']) => {
     db.updateContactInquiryStatus(id, status);
     reloadInquiries();
+    if (activeTab === "security") {
+      fetch("/api/admin/audit")
+        .then(res => res.json())
+        .then(data => setAuditLogs(data || []));
+    }
   };
 
   const handleDeleteInquiry = (id: string) => {
     db.deleteContactInquiry(id);
     reloadInquiries();
+    if (activeTab === "security") {
+      fetch("/api/admin/audit")
+        .then(res => res.json())
+        .then(data => setAuditLogs(data || []));
+    }
   };
 
   const [replyingTo, setReplyingTo] = useState<ContactInquiry | null>(null);
@@ -335,7 +357,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
     }
   };
 
-  if (!isAuthenticated) {
+  if (isAuthenticated === null) { return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>; } if (!isAuthenticated) {
     return (
       <AdminLoginGate
         onSuccess={() => setIsAuthenticated(true)}
@@ -471,7 +493,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
   };
 
   const handleLogout = () => {
-    adminAuth.logout();
+    fetch("/api/admin/logout", { method: "POST" });
     setIsAuthenticated(false);
   };
 
@@ -1158,6 +1180,11 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
                   if (window.confirm('Are you sure you want to clear all inquiries?')) {
                     inquiries.forEach(inq => db.deleteContactInquiry(inq.id));
                     reloadInquiries();
+    if (activeTab === "security") {
+      fetch("/api/admin/audit")
+        .then(res => res.json())
+        .then(data => setAuditLogs(data || []));
+    }
                   }
                 }}
                 className="px-3 py-1.5 rounded-xl border border-rose-200 hover:bg-rose-50 text-rose-600 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
@@ -1395,158 +1422,90 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
 
       {/* Tab: Security & Access Control */}
       {activeTab === 'security' && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-xs space-y-6 max-w-2xl mx-auto">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-xs space-y-6 max-w-4xl mx-auto">
           <div className="flex items-center gap-3 pb-4 border-b border-neutral-100">
             <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
               <Shield className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-neutral-900">
-                Admin Security & Protection
+                Security Overview
               </h3>
               <p className="text-xs text-neutral-500">
-                Configure your administrator credentials, master PIN, and public visibility rules.
+                Monitor authentication status, active sessions, and system audit logs.
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200/80">
+              <h4 className="text-sm font-bold text-neutral-900 mb-3 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                Authentication Status
+              </h4>
+              <p className="text-xs text-neutral-600 mb-2">
+                <strong>Status:</strong> Active & Authenticated
+              </p>
+              <p className="text-xs text-neutral-600 mb-2">
+                <strong>Admin Email:</strong> {adminEmail || 'Unknown'}
+              </p>
+              <p className="text-xs text-neutral-600">
+                <strong>MFA Status:</strong> Pending Configuration (Cloudflare Access Recommended)
+              </p>
+              <div className="mt-4">
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-1.5 bg-rose-100 text-rose-700 hover:bg-rose-200 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  Revoke Current Session
+                </button>
+              </div>
+            </div>
+            
+            <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200/80">
+              <h4 className="text-sm font-bold text-neutral-900 mb-3 flex items-center gap-2">
+                <Settings className="w-4 h-4 text-blue-500" />
+                Cloudflare Settings
+              </h4>
+              <p className="text-xs text-neutral-600 mb-2">
+                Password changes and secrets are managed securely via <strong>Cloudflare Secrets</strong>.
+              </p>
+              <p className="text-[11px] text-neutral-500 font-mono bg-white p-2 border border-neutral-200 rounded-xl">
+                ADMIN_EMAIL<br/>
+                ADMIN_PASSWORD_HASH<br/>
+                SESSION_SECRET
               </p>
             </div>
           </div>
 
-          {securityNotice && (
-            <div
-              className={`p-4 rounded-2xl border text-xs flex items-start gap-2.5 animate-in fade-in-50 ${
-                securityNotice.type === 'success'
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                  : 'bg-rose-50 border-rose-200 text-rose-900'
-              }`}
-            >
-              {securityNotice.type === 'success' ? (
-                <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+          <div>
+            <h4 className="text-sm font-bold text-neutral-900 mb-3 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-indigo-500" />
+              Recent Audit Log
+            </h4>
+            <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden">
+              {auditLogs && auditLogs.length > 0 ? (
+                <div className="divide-y divide-neutral-100 max-h-96 overflow-y-auto">
+                  {auditLogs.map((log: any, i: number) => (
+                    <div key={i} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-neutral-50 transition-colors">
+                      <div>
+                        <p className="text-xs font-bold text-neutral-900">{log.action}</p>
+                        <p className="text-[11px] text-neutral-500">{log.details}</p>
+                      </div>
+                      <span className="text-[10px] font-mono text-neutral-400 bg-neutral-100 px-2 py-1 rounded-lg shrink-0">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="p-8 text-center text-xs text-neutral-500">
+                  No recent audit logs available.
+                </div>
               )}
-              <div className="font-medium">{securityNotice.message}</div>
-            </div>
-          )}
-
-          <form onSubmit={handleSaveSecurity} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-neutral-700 mb-1">
-                Authorized Administrator Username or Email
-              </label>
-              <input
-                type="text"
-                required
-                value={securityForm.adminEmail}
-                onChange={(e) => setSecurityForm({ ...securityForm, adminEmail: e.target.value })}
-                placeholder="admin"
-                className="w-full px-3 py-2 text-xs bg-neutral-100 rounded-xl border border-neutral-200 focus:bg-white focus:outline-hidden"
-              />
-              <p className="text-[11px] text-neutral-400 mt-1">
-                This credential is used to authenticate platform admin access.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  New Admin Password (Optional)
-                </label>
-                <div className="relative">
-                  <input
-                    type={showSecPassword ? 'text' : 'password'}
-                    value={securityForm.newPassword}
-                    onChange={(e) => setSecurityForm({ ...securityForm, newPassword: e.target.value })}
-                    placeholder="Leave blank to keep current"
-                    className="w-full px-3 py-2 text-xs bg-neutral-100 rounded-xl border border-neutral-200 focus:bg-white focus:outline-hidden pr-8 font-mono"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowSecPassword(!showSecPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-0.5 cursor-pointer"
-                  >
-                    {showSecPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Confirm New Password
-                </label>
-                <input
-                  type={showSecPassword ? 'text' : 'password'}
-                  value={securityForm.confirmPassword}
-                  onChange={(e) => setSecurityForm({ ...securityForm, confirmPassword: e.target.value })}
-                  placeholder="Repeat new password"
-                  className="w-full px-3 py-2 text-xs bg-neutral-100 rounded-xl border border-neutral-200 focus:bg-white focus:outline-hidden font-mono"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-neutral-700 mb-1">
-                25-Digit Master Security PIN
-              </label>
-              <input
-                type="text"
-                required
-                maxLength={30}
-                value={securityForm.adminPin}
-                onChange={(e) => setSecurityForm({ ...securityForm, adminPin: e.target.value })}
-                placeholder="2026123456789012345678901"
-                className="w-full sm:w-80 px-3 py-2 text-xs font-mono tracking-widest bg-neutral-100 rounded-xl border border-neutral-200 focus:bg-white focus:outline-hidden"
-              />
-              <p className="text-[11px] text-neutral-400 mt-1">
-                Used for instant 25-digit master PIN unlock from any device.
-              </p>
-            </div>
-
-            <div className="pt-2 border-t border-neutral-100">
-              <label className="flex items-start gap-2.5 cursor-pointer text-xs text-neutral-700 select-none">
-                <input
-                  type="checkbox"
-                  checked={securityForm.hideAdminFromPublic}
-                  onChange={(e) => setSecurityForm({ ...securityForm, hideAdminFromPublic: e.target.checked })}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-neutral-300 mt-0.5"
-                />
-                <div>
-                  <span className="font-bold block text-neutral-900">
-                    Discreet Public Mode (Hide Admin Links)
-                  </span>
-                  <span className="text-[11px] text-neutral-500">
-                    Hides the "Admin Portal" link from the header & footer for regular visitors. You can still access it directly or when logged in.
-                  </span>
-                </div>
-              </label>
-            </div>
-
-            <div className="pt-3">
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-2"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Save Security & Access Rules</span>
-              </button>
-            </div>
-          </form>
-
-          {/* Active Session Info */}
-          <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 text-xs space-y-2">
-            <div className="font-bold text-neutral-800 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-neutral-500" />
-              <span>Current Session Status</span>
-            </div>
-            <div className="text-[11px] text-neutral-600 grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <span className="text-neutral-400">Session Role:</span>{' '}
-                <strong className="text-neutral-800">System Administrator</strong>
-              </div>
-              <div>
-                <span className="text-neutral-400">Lock Protection:</span>{' '}
-                <strong className="text-emerald-700 font-bold">Active & Enforced</strong>
-              </div>
             </div>
           </div>
+
         </div>
       )}
 

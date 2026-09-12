@@ -1,19 +1,5 @@
 import React, { useState } from 'react';
-import {
-  ShieldAlert,
-  Lock,
-  Mail,
-  KeyRound,
-  Eye,
-  EyeOff,
-  ArrowLeft,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
-  HelpCircle
-} from 'lucide-react';
-import { adminAuth } from '../../services/adminAuth';
-import { useI18n } from '../../i18n/context';
+import { Lock, Mail, KeyRound, Eye, EyeOff, AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 interface AdminLoginGateProps {
   onSuccess: () => void;
@@ -21,41 +7,36 @@ interface AdminLoginGateProps {
 }
 
 export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({ onSuccess, onCancel }) => {
-  const { t } = useI18n();
-  const config = adminAuth.getConfig();
-
-  const [authMode, setAuthMode] = useState<'password' | 'pin'>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [pin, setPin] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [failedAttempts, setFailedAttempts] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      let result;
-      if (authMode === 'password') {
-        result = adminAuth.login(email, password, rememberMe);
-      } else {
-        result = adminAuth.loginWithPin(pin, rememberMe);
-      }
-
-      setIsSubmitting(false);
-
-      if (result.success) {
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, remember: rememberMe })
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
         onSuccess();
       } else {
-        setFailedAttempts((prev) => prev + 1);
-        setErrorMsg(result.error || 'Authentication failed. Please verify your credentials.');
+        setErrorMsg(data.error || 'Invalid administrator credentials.');
       }
-    }, 300);
+    } catch (err) {
+      setErrorMsg('Network error during authentication. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -78,40 +59,6 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({ onSuccess, onCan
           </div>
         </div>
 
-        {/* Tab Selector: Password vs Master PIN */}
-        <div className="flex border-b border-neutral-100 bg-neutral-50/50 p-1.5 gap-1.5 text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => {
-              setAuthMode('password');
-              setErrorMsg(null);
-            }}
-            className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              authMode === 'password'
-                ? 'bg-white text-blue-700 shadow-xs font-bold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <KeyRound className="w-3.5 h-3.5" />
-            <span>Admin Credentials</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setAuthMode('pin');
-              setErrorMsg(null);
-            }}
-            className={`flex-1 py-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              authMode === 'pin'
-                ? 'bg-white text-blue-700 shadow-xs font-bold'
-                : 'text-neutral-600 hover:text-neutral-900'
-            }`}
-          >
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Master PIN</span>
-          </button>
-        </div>
-
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {errorMsg && (
@@ -124,75 +71,46 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({ onSuccess, onCan
             </div>
           )}
 
-          {authMode === 'password' ? (
-            <>
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1.5">
-                  Admin Username or Email
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                  <input
-                    type="text"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter admin email..."
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs bg-neutral-50 focus:bg-white border border-neutral-200 focus:border-blue-500 rounded-xl focus:outline-hidden transition-all focus:ring-3 focus:ring-blue-100"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1.5">
-                  Admin Password
-                </label>
-                <div className="relative">
-                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter admin password..."
-                    className="w-full pl-10 pr-10 py-2.5 text-xs bg-neutral-50 focus:bg-white border border-neutral-200 focus:border-blue-500 rounded-xl focus:outline-hidden transition-all focus:ring-3 focus:ring-blue-100 font-mono"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-0.5 cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div>
-              <label className="block text-xs font-bold text-neutral-700 mb-1.5">
-                25-Digit Master PIN Code
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  maxLength={30}
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
-                  placeholder="Enter 25-digit PIN..."
-                  className="w-full pl-10 pr-10 py-2.5 tracking-widest text-xs font-bold bg-neutral-50 focus:bg-white border border-neutral-200 focus:border-blue-500 rounded-xl focus:outline-hidden transition-all focus:ring-3 focus:ring-blue-100 font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-0.5 cursor-pointer"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+          <div>
+            <label className="block text-xs font-bold text-neutral-700 mb-1.5">
+              Admin Username or Email
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <input
+                type="text"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter admin email..."
+                className="w-full pl-10 pr-3.5 py-2.5 text-xs bg-neutral-50 focus:bg-white border border-neutral-200 focus:border-blue-500 rounded-xl focus:outline-hidden transition-all focus:ring-3 focus:ring-blue-100"
+              />
             </div>
-          )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-neutral-700 mb-1.5">
+              Admin Password
+            </label>
+            <div className="relative">
+              <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter admin password..."
+                className="w-full pl-10 pr-10 py-2.5 text-xs bg-neutral-50 focus:bg-white border border-neutral-200 focus:border-blue-500 rounded-xl focus:outline-hidden transition-all focus:ring-3 focus:ring-blue-100 font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 p-0.5 cursor-pointer"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
 
           <div className="flex items-center justify-between text-xs pt-1">
             <label className="flex items-center gap-2 cursor-pointer text-neutral-600 select-none">
