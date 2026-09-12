@@ -129,29 +129,39 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
   const [deleteSuccessNotice, setDeleteSuccessNotice] = useState<string | null>(null);
 
   // Quick Price Edit State
-  const [editingPriceProduct, setEditingPriceProduct] = useState<Product | null>(null);
-  const [priceForm, setPriceForm] = useState({ price: '', originalPrice: '' });
-  const [priceSaveNotice, setPriceSaveNotice] = useState<string | null>(null);
+  // Full Edit State
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editForm, setEditForm] = useState({ 
+    name: '',
+    brandName: '',
+    imageUrl: '',
+    price: '', 
+    originalPrice: '' 
+  });
+  const [editSaveNotice, setEditSaveNotice] = useState<string | null>(null);
 
-  const handleStartEditPrice = (p: Product) => {
-    setEditingPriceProduct(p);
-    setPriceForm({
+  const handleStartEdit = (p: Product) => {
+    setEditingProduct(p);
+    setEditForm({
+      name: p.name,
+      brandName: p.brandName,
+      imageUrl: p.images[0]?.url || '',
       price: p.price.toString(),
       originalPrice: p.merchantOffers[0]?.originalPrice?.toString() || '',
     });
-    setPriceSaveNotice(null);
+    setEditSaveNotice(null);
   };
 
-  const handleSavePrice = (e: React.FormEvent) => {
+  const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingPriceProduct) return;
+    if (!editingProduct) return;
 
-    const numPrice = parseFloat(priceForm.price);
+    const numPrice = parseFloat(editForm.price);
     if (isNaN(numPrice) || numPrice <= 0) return;
 
-    const numOrig = parseFloat(priceForm.originalPrice) || undefined;
+    const numOrig = parseFloat(editForm.originalPrice) || undefined;
 
-    const updatedOffers = (editingPriceProduct.merchantOffers || []).map((mo, idx) => {
+    const updatedOffers = (editingProduct.merchantOffers || []).map((mo, idx) => {
       if (idx === 0) {
         return {
           ...mo,
@@ -163,21 +173,32 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
       return mo;
     });
 
+    // Handle image update
+    let updatedImages = [...editingProduct.images];
+    if (updatedImages.length > 0) {
+      updatedImages[0] = { ...updatedImages[0], url: editForm.imageUrl };
+    } else {
+      updatedImages = [{ id: 'img-1', url: editForm.imageUrl, alt: editForm.name, isPrimary: true, sortOrder: 1 }];
+    }
+
     const updatedProduct: Product = {
-      ...editingPriceProduct,
+      ...editingProduct,
+      name: editForm.name,
+      brandName: editForm.brandName,
+      images: updatedImages,
       price: numPrice,
       merchantOffers: updatedOffers.length > 0 ? updatedOffers : [
         {
-          id: `offer-${editingPriceProduct.id}-default`,
-          productId: editingPriceProduct.id,
+          id: `offer-${editingProduct.id}-default`,
+          productId: editingProduct.id,
           merchantId: 'merchant-amazon-us',
           merchantName: 'Amazon',
           merchantLogo: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=120&h=40&q=80',
-          productUrl: editingPriceProduct.identifiers.asin ? `https://www.amazon.com/dp/${editingPriceProduct.identifiers.asin}` : '#',
-          affiliateUrl: editingPriceProduct.identifiers.asin ? `https://www.amazon.com/dp/${editingPriceProduct.identifiers.asin}?tag=omnidiscover-20` : '#',
+          productUrl: editingProduct.identifiers.asin ? `https://www.amazon.com/dp/${editingProduct.identifiers.asin}` : '#',
+          affiliateUrl: editingProduct.identifiers.asin ? `https://www.amazon.com/dp/${editingProduct.identifiers.asin}?tag=omnidiscover-20` : '#',
           price: numPrice,
           originalPrice: numOrig,
-          currency: editingPriceProduct.currency || 'USD',
+          currency: editingProduct.currency || 'USD',
           availability: 'in_stock',
           lastChecked: new Date().toISOString(),
           status: 'active',
@@ -189,10 +210,12 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
 
     db.saveProduct(updatedProduct);
     setProducts(db.getProducts({}));
-    setPriceSaveNotice(`Updated price for "${updatedProduct.name}" to $${numPrice.toFixed(2)}`);
+    
+    setEditSaveNotice('Product details updated successfully!');
+    
     setTimeout(() => {
-      setEditingPriceProduct(null);
-      setPriceSaveNotice(null);
+      setEditingProduct(null);
+      setEditSaveNotice(null);
     }, 1000);
   };
 
@@ -760,8 +783,8 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
                     <td className="p-3 text-neutral-600">{p.brandName}</td>
                     <td className="p-3 font-bold text-neutral-900">
                       <button
-                        onClick={() => handleStartEditPrice(p)}
-                        title="Click to edit product real price"
+                        onClick={() => handleStartEdit(p)}
+                        title="Click to edit product details"
                         className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition-colors cursor-pointer group"
                       >
                         <span>{formatPrice(p.price)}</span>
@@ -778,12 +801,12 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => handleStartEditPrice(p)}
-                          title="Quick edit product real price"
+                          onClick={() => handleStartEdit(p)}
+                          title="Quick edit product details"
                           className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer border border-amber-200"
                         >
-                          <DollarSign className="w-3 h-3" />
-                          <span>Price</span>
+                          <Edit3 className="w-3 h-3" />
+                          <span>Edit</span>
                         </button>
                         <button
                           onClick={() => setProductForNewOffer(p)}
@@ -1538,27 +1561,27 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
         />
       )}
 
-      {/* Quick Price Edit Modal */}
-      {editingPriceProduct && (
+      {/* Full Edit Modal */}
+      {editingProduct && (
         <div className="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-neutral-200 space-y-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-neutral-200 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-xl bg-amber-100 text-amber-700">
-                  <DollarSign className="w-5 h-5" />
+                  <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-extrabold text-neutral-900 text-base">
-                    Edit Live Market Price
+                    Edit Product Details
                   </h3>
                   <p className="text-xs text-neutral-500">
-                    Set the exact real Amazon / market price for this product
+                    Fix missing information or update prices
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => setEditingPriceProduct(null)}
-                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
+                onClick={() => setEditingProduct(null)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1566,85 +1589,123 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
 
             <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 border border-neutral-200">
               <img
-                src={editingPriceProduct.images[0]?.url}
-                alt={editingPriceProduct.name}
+                src={editForm.imageUrl || editingProduct.images[0]?.url}
+                alt={editForm.name}
                 referrerPolicy="no-referrer"
                 className="w-12 h-12 object-contain rounded-lg bg-white border border-neutral-200 p-1 shrink-0"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&q=80';
+                }}
               />
               <div className="min-w-0">
                 <h4 className="font-bold text-xs text-neutral-900 truncate">
-                  {editingPriceProduct.name}
+                  {editForm.name}
                 </h4>
-                {editingPriceProduct.identifiers.asin && (
+                {editingProduct.identifiers.asin && (
                   <p className="text-[11px] font-mono text-neutral-500">
-                    ASIN: {editingPriceProduct.identifiers.asin}
+                    ASIN: {editingProduct.identifiers.asin}
                   </p>
                 )}
               </div>
             </div>
 
-            {priceSaveNotice && (
+            {editSaveNotice && (
               <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{priceSaveNotice}</span>
+                <span>{editSaveNotice}</span>
               </div>
             )}
 
-            <form onSubmit={handleSavePrice} className="space-y-4">
+            <form onSubmit={handleSaveProduct} className="space-y-4">
               <div>
-                <label className="block text-xs font-extrabold text-neutral-800 mb-1">
-                  Current Sale Price ($ USD) <span className="text-rose-600">*</span>
+                <label className="block text-xs font-bold text-neutral-800 mb-1">
+                  Product Name <span className="text-rose-600">*</span>
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-neutral-400 font-bold">$</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    required
-                    value={priceForm.price}
-                    onChange={(e) => setPriceForm({ ...priceForm, price: e.target.value })}
-                    className="w-full pl-8 pr-3 py-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-bold text-neutral-900 text-sm"
-                    placeholder="e.g. 12.99"
-                  />
-                </div>
-                <p className="text-[11px] text-neutral-500 mt-1">
-                  This will update the primary buy button price across the catalog.
-                </p>
+                <input
+                  type="text"
+                  required
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-neutral-900 text-sm"
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-700 mb-1">
-                  Original List Price / MSRP ($ USD, Optional)
+                <label className="block text-xs font-bold text-neutral-800 mb-1">
+                  Brand Name <span className="text-rose-600">*</span>
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-neutral-400 font-bold">$</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    value={priceForm.originalPrice}
-                    onChange={(e) => setPriceForm({ ...priceForm, originalPrice: e.target.value })}
-                    className="w-full pl-8 pr-3 py-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-neutral-900 text-sm"
-                    placeholder="e.g. 15.99 (Leave blank if no discount)"
-                  />
+                <input
+                  type="text"
+                  required
+                  value={editForm.brandName}
+                  onChange={(e) => setEditForm({ ...editForm, brandName: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-neutral-900 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-800 mb-1">
+                  Primary Image URL <span className="text-rose-600">*</span>
+                </label>
+                <input
+                  type="url"
+                  required
+                  value={editForm.imageUrl}
+                  onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-neutral-900 text-sm font-mono text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-800 mb-1">
+                    Sale Price (USD) <span className="text-rose-600">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-neutral-400 font-bold">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      required
+                      value={editForm.price}
+                      onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                      className="w-full pl-8 pr-3 py-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-bold text-neutral-900 text-sm"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-neutral-700 mb-1">
+                    Original Price (Optional)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-neutral-400 font-bold">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      value={editForm.originalPrice}
+                      onChange={(e) => setEditForm({ ...editForm, originalPrice: e.target.value })}
+                      className="w-full pl-8 pr-3 py-2 rounded-xl border border-neutral-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-neutral-900 text-sm"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-neutral-100">
+              <div className="flex justify-end gap-2 pt-4 border-t border-neutral-100">
                 <button
                   type="button"
-                  onClick={() => setEditingPriceProduct(null)}
-                  className="px-4 py-2 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-xs hover:bg-neutral-100 transition-colors"
+                  onClick={() => setEditingProduct(null)}
+                  className="px-4 py-2 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-xs hover:bg-neutral-100 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs transition-colors shadow-sm flex items-center gap-1.5"
+                  className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Update Real Price</span>
+                  <span>Save Changes</span>
                 </button>
               </div>
             </form>

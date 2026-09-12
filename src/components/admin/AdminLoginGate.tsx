@@ -33,7 +33,6 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({ onSuccess, onCan
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showHint, setShowHint] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,26 +120,7 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({ onSuccess, onCan
               <div>
                 <strong className="block font-bold">Access Denied</strong>
                 <span>{errorMsg}</span>
-                {failedAttempts >= 2 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowHint(!showHint)}
-                    className="mt-1 text-[11px] underline block text-rose-700 hover:text-rose-900 cursor-pointer"
-                  >
-                    Need initial credentials hint?
-                  </button>
-                )}
               </div>
-            </div>
-          )}
-
-          {showHint && (
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] space-y-1">
-              <p className="font-bold">🔑 System Default Access:</p>
-              <p>Username / Email: <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">admin</code></p>
-              <p>Password: <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">admin</code></p>
-              <p>Master PIN: <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">2026123456789012345678901</code></p>
-              <p className="text-[10px] text-amber-700 pt-1">You can change username, password, and PIN anytime in Admin Settings.</p>
             </div>
           )}
 
@@ -157,7 +137,7 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({ onSuccess, onCan
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin"
+                    placeholder="Enter admin email..."
                     className="w-full pl-10 pr-3.5 py-2.5 text-xs bg-neutral-50 focus:bg-white border border-neutral-200 focus:border-blue-500 rounded-xl focus:outline-hidden transition-all focus:ring-3 focus:ring-blue-100"
                   />
                 </div>
