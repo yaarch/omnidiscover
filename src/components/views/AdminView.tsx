@@ -22,6 +22,8 @@ import {
   Info,
   Lock,
   LogOut,
+  Settings,
+  Activity,
   KeyRound,
   Shield,
   Eye,
@@ -247,11 +249,11 @@ export const AdminView: React.FC<AdminViewProps> = ({ onNavigate }) => {
 
   // Security Credentials Form State
   const [securityForm, setSecurityForm] = useState({
-    adminEmail: adminConfig.adminEmail,
+    adminEmail: adminEmail || 'admin',
     newPassword: '',
     confirmPassword: '',
-    adminPin: adminConfig.adminPin,
-    hideAdminFromPublic: adminConfig.hideAdminFromPublic,
+    adminPin: '••••••••••••••••',
+    hideAdminFromPublic: false,
   });
   const [showSecPassword, setShowSecPassword] = useState(false);
   const [securityNotice, setSecurityNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
